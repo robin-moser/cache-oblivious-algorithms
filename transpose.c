@@ -5,6 +5,8 @@
 #include <time.h>
 #include <sys/time.h>
 
+int min(int a, int b) { return (a < b) ? a : b; }
+
 // inline function to calculate the runtime
 static inline uint64_t time_diff( const struct timeval *ts1, const struct timeval *ts2)
 {
@@ -13,7 +15,7 @@ static inline uint64_t time_diff( const struct timeval *ts1, const struct timeva
 }
 
 // naive transpose algorithm (row by row)
-void transpose_base(int *A, int lda, int rows, int cols, int *B, int ldb)
+void transpose_base(double *A, int lda, int rows, int cols, double *B, int ldb)
 {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -23,7 +25,7 @@ void transpose_base(int *A, int lda, int rows, int cols, int *B, int ldb)
 }
 
 // cache oblivious recursive transpose algorithm
-void transpose_oblivious(int *A, int lda, int rows, int cols, int *B, int ldb)
+void transpose_oblivious(double *A, int lda, int rows, int cols, double *B, int ldb)
 {
     // Basecase: if the matrix is small enough, transpose it directly
     if (rows < 16) {
@@ -47,12 +49,12 @@ void transpose_oblivious(int *A, int lda, int rows, int cols, int *B, int ldb)
 }
 
 // cache aware tiled transpose algorithm
-void transpose_block(int *A, int lda, int rows, int cols, int *B, int ldb, int bs)
+void transpose_block(double *A, int lda, int rows, int cols, double *B, int ldb, int bs)
 {
     for (int i = 0; i < rows; i += bs) {
         for (int j = 0; j < cols; j += bs) {
-            for (int ii = i; ii < i + bs; ii++) {
-                for (int jj = j; jj < j + bs; jj++) {
+            for (int ii = i; ii < min(i + bs, rows); ii++) {
+                for (int jj = j; jj < min(j + bs, cols); jj++) {
                     B[jj*ldb + ii] = A[ii*lda + jj];
                 }
             }
@@ -61,11 +63,11 @@ void transpose_block(int *A, int lda, int rows, int cols, int *B, int ldb, int b
 }
 
 // test function to check for correct matrix transpose
-int test_result(int *A, int *AT, int rows, int cols)
+int test_result(double *A, double *AT, int rows, int cols)
 {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (A[i * rows + j] != AT[j * cols + i]) {
+            if (A[i * cols + j] != AT[j * rows + i]) {
                 return 0;
             }
         }
@@ -82,13 +84,13 @@ int main(int argc, char *argv[])
     struct timeval start, end;
 
     // allocate memory for input and output matrices
-    int *A  = malloc(rows * cols * sizeof(double));
-    int *AT = malloc(rows * cols * sizeof(double));
+    double *A  = malloc(rows * cols * sizeof(double));
+    double *AT = malloc(rows * cols * sizeof(double));
 
     // initialize random seed
     srand(time(NULL));
 
-    int repeat = 6;
+    int repeat = 5;
 
     double runtime[repeat];
     for (int i = 0; i < repeat; i++) {
