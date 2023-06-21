@@ -5,7 +5,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-int min(int a, int b) { return (a < b) ? a : b; }
+static inline int min(int a, int b) { return (a < b) ? a : b; }
+static inline int max(int a, int b) { return (a > b) ? a : b; }
 
 // inline function to calculate the runtime
 static inline uint64_t time_diff( const struct timeval *ts1, const struct timeval *ts2)

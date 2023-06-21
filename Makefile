@@ -3,10 +3,13 @@ GCC_OPT=-O3 -Wall
 
 .PHONY: all clean plot
 
-all: transpose
+all: transpose multiplication
 plot: plot.benchmark.pdf
 
 transpose: transpose.c
+	$(GCC_BIN) $(GCC_OPT) -o $@ -lm $^
+
+multiplication: multiplication.c
 	$(GCC_BIN) $(GCC_OPT) -o $@ -lm $^
 
 plot.benchmark.pdf: plot.benchmark.plt data*
@@ -22,4 +25,4 @@ benchmark:
 	done
 
 clean:
-	rm -f plot.benchmark.pdf transpose
+	rm -f plot.benchmark.pdf transpose multiplication
